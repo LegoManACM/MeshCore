@@ -66,6 +66,7 @@ void radio_set_params(float freq, float bw, uint8_t sf, uint8_t cr) {
 }
 
 void radio_set_tx_power(int8_t dbm) {
+  Serial.printf("TX power set: %d dBm\n", dbm);
   radio.setOutputPower(dbm);
 }
 
