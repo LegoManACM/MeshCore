@@ -13,6 +13,7 @@ extern WaveshareBoard board;
 extern WRAPPER_CLASS radio_driver;
 extern AutoDiscoverRTCClock rtc_clock;
 extern EnvironmentSensorManager sensors;
+extern bool g_relay_mode;
 
 bool radio_init();
 uint32_t radio_get_rng_seed();

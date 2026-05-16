@@ -170,16 +170,21 @@ void setup() {
   #ifdef WIFI_SSID
     WiFi.begin(WIFI_SSID, WIFI_PWD);
     serial_interface.begin(TCP_PORT);
+    the_mesh.startInterface(serial_interface);
   #elif defined(BLE_PIN_CODE)
-    serial_interface.begin(BLE_NAME_PREFIX, the_mesh.getNodePrefs()->node_name, the_mesh.getBLEPin());
+    if (!g_relay_mode) {
+      serial_interface.begin(BLE_NAME_PREFIX, the_mesh.getNodePrefs()->node_name, the_mesh.getBLEPin());
+      the_mesh.startInterface(serial_interface);
+    }
   #elif defined(SERIAL_RX)
     companion_serial.setPins(SERIAL_RX, SERIAL_TX);
     companion_serial.begin(115200);
     serial_interface.begin(companion_serial);
+    the_mesh.startInterface(serial_interface);
   #else
     serial_interface.begin(Serial);
+    the_mesh.startInterface(serial_interface);
   #endif
-  the_mesh.startInterface(serial_interface);
 #elif defined(ESP32)
   SPIFFS.begin(true);
   store.begin();

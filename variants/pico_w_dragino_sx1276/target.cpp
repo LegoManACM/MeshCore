@@ -15,11 +15,33 @@ AutoDiscoverRTCClock rtc_clock(fallback_clock);
 
 MicroNMEALocationProvider nmea(Serial1, &rtc_clock);
 EnvironmentSensorManager sensors(nmea);
+bool g_relay_mode = false;
 
 bool radio_init() {
-  Serial.begin(115200);
-  delay(2000);
+  // Check for relay mode button hold
+  pinMode(2, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
   
+  // Sample button for 3 seconds
+  bool relay_mode = true;
+  for (int i = 0; i < 30; i++) {
+    if (digitalRead(2) == HIGH) {
+      relay_mode = false;
+      break;
+    }
+    digitalWrite(LED_BUILTIN, (i % 2 == 0) ? HIGH : LOW);  // blink while checking
+    delay(100);
+  }
+  
+  if (relay_mode) {
+    digitalWrite(LED_BUILTIN, HIGH);  // solid LED = relay mode
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);   // off = companion mode
+  }
+
+  // store result globally
+  g_relay_mode = relay_mode;
+
   Serial1.setRX(PIN_GPS_RX);
   Serial1.setTX(PIN_GPS_TX);
   Serial1.begin(9600);
@@ -27,18 +49,11 @@ bool radio_init() {
   SPI.begin();
   bool result = radio.std_init(NULL);
   
-  if (LittleFS.begin()) {
-    Serial.println("LittleFS mounted OK");
-  } else {
-  Serial.println("LittleFS mount failed, formatting...");
-  LittleFS.format();
-  if (LittleFS.begin()) {
-    Serial.println("LittleFS formatted and mounted OK");
-  } else {
-    Serial.println("LittleFS still failed!");
+  if (!LittleFS.begin()) {
+      LittleFS.format();
+      LittleFS.begin();
   }
-  }
-  
+
   return result;
 }
 
